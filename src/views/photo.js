@@ -17,7 +17,7 @@ async function start() {
   let imgs = [];
   try {
     const images = Object.values(
-        import.meta.glob('../images/*.{jpg,jpeg,png,webp,avif,gif}', { eager: true, query: '?url' })
+        import.meta.glob('../images/*.{jpg,jpeg,png,webp,avif,gif}', { eager: true, import: 'default' })
     );
     imgs = images;
     console.log('Photos fetched:', imgs.length, 'images');
