@@ -28,4 +28,4 @@ dist-ssr
 src/images/*
 !src/images/.gitkeep
 
-#.env
+.env
