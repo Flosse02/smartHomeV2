@@ -35,10 +35,3 @@ Google Cloud Console → **APIs & Services → Credentials → Create credential
 
 If the **OAuth consent screen** is **Testing**, add your Google account under **Test users**.  
 Copy the **Client ID** (ends with `.apps.googleusercontent.com`) into the .env file.
-
----
-
-## 3) Configure env
-Create **.env** in project root:
-```bash
-VITE_GOOGLE_CLIENT_ID=YOUR_CLIENT_ID.apps.googleusercontent.com
