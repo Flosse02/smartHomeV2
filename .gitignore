@@ -25,5 +25,5 @@ dist-ssr
 *.sw?
 
 # Images
-public/images/*
-!public/images/.gitkeep
+src/images/*
+!src/images/.gitkeep
