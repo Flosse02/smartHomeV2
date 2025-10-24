@@ -1,27 +1,20 @@
 import './style.css';
 
 import { initTabs } from './lib/tabs.js';
+import { updateWeather } from './components/weather.js';
+import { updateDateTime } from './components/timedate.js';
 
-function mountTimebar() {
+// --- Top info bar with time + weather
+function mountInfoBar() {
   const elTime = document.getElementById('info-time');
   const elTemp = document.getElementById('info-temp');
 
-  // simple live clock
-  const tick = () => {
-    const now = new Date();
-    elTime && (elTime.textContent = now.toLocaleString(undefined, {
-      weekday: 'short',
-      month: 'short',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    }));
-  };
-  tick();
-  setInterval(tick, 1000);
+  const clock = updateDateTime(elTime);
+  console.log('Clock started', clock);
 
-  // stub temperature (replace with real fetch later)
-  if (elTemp) elTemp.textContent = '—°C';
+  // Get weather every 10 minutes
+  updateWeather(elTemp);
+  setInterval(() => updateWeather(elTemp), 10 * 60 * 1000);
 }
 
 /**
@@ -41,7 +34,7 @@ function mountCalendar() {
 }
 
 // --- Boot everything fixed (top + bottom), then wire tabs for the upper pane
-mountTimebar();
+mountInfoBar();
 mountCalendar();
 
 // Tabs config:
