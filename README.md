@@ -35,3 +35,12 @@ Google Cloud Console → **APIs & Services → Credentials → Create credential
 
 If the **OAuth consent screen** is **Testing**, add your Google account under **Test users**.  
 Copy the **Client ID** (ends with `.apps.googleusercontent.com`) into the .env file.
+
+## 3) Create .env File
+- create a file called ".env" in the root folder
+- add the following to the file
+```
+VITE_GOOGLE_CLIENT_ID=something.apps.googleusercontent.com
+VITE_GOOGLE_LOGIN_EMAIL=name@mail.com
+```
+- Add your google calendar email and you client ID from step 2
