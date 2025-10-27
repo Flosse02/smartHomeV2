@@ -6,7 +6,7 @@ export function initTabs({
   barSelector = '#tabs-bar',
   buttonSelector = '[data-tab]',
   activeAttr = 'data-active',
-  mountTargetId = 'upper-pane',
+  mountTargetId = 'tabs-pane',
   defaultTab = null,
   views = {}, // { tabName: () => import('...') }
 } = {}) {

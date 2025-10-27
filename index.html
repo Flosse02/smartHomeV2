@@ -2,37 +2,34 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script type="module" src="/src/main.js"></script>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <script src="https://cdn.tailwindcss.com"></script>
     <title>smarthomev2</title>
   </head>
-  <body>
-    <div id="app"></div>
-      <body class="min-h-screen bg-neutral-950 text-neutral-100">
-        <div class="min-h-screen grid grid-rows-[auto_auto_1fr]">
+  <body class="h-screen overflow-hidden bg-neutral-950 text-neutral-100">
+    <div class="flex h-full flex-col min-h-0">
+      <!-- Top info bar -->
+      <header class="shrink-0 h-20 flex items-center justify-between px-4 border-b border-white/10">
+        <div id="info-time" class="font-semibold"></div>
+        <div id="info-temp" class="text-white/70"></div>
+      </header>
 
-          <!-- Top info bar -->
-          <header class="h-20 flex items-center justify-between px-4 border-b border-white/10">
-            <div id="info-time" class="font-semibold"></div>
-            <div id="info-temp" class="text-white/70"></div>
-          </header>
+      <!-- Tabs bar -->
+      <nav id="tabs-bar" class="shrink-0 h-11 flex items-center gap-2 px-2 border-b border-white/10">
+        <button data-tab="photo" class="px-3 py-1.5 rounded-lg border border-white/10 data-[active=true]:border-sky-400">🖼 Photo</button>
+        <button data-tab="music" class="px-3 py-1.5 rounded-lg border border-white/10 data-[active=true]:border-sky-400">🎵 Music</button>
+        <button data-tab="smart" class="px-3 py-1.5 rounded-lg border border-white/10 data-[active=true]:border-sky-400">🏠 Smart Home</button>
+      </nav>
 
-          <!-- Tabs bar -->
-          <nav id="tabs-bar" class="h-11 flex items-center gap-2 px-2 border-b border-white/10">
-            <button data-tab="photo" class="px-3 py-1.5 rounded-lg border border-white/10 data-[active=true]:border-sky-400">🖼 Photo</button>
-            <button data-tab="music" class="px-3 py-1.5 rounded-lg border border-white/10 data-[active=true]:border-sky-400">🎵 Music</button>
-            <button data-tab="smart" class="px-3 py-1.5 rounded-lg border border-white/10 data-[active=true]:border-sky-400">🏠 Smart Home</button>
-          </nav>
+      <!-- Main split (fills the rest) -->
+      <main class="flex-1 min-h-0 grid grid-rows-2">
+        <section id="tabs-pane" class="min-h-0 overflow-hidden p-3"></section>
+        <section id="calendar-pane" class="min-h-0 overflow-auto p-3"></section>
+      </main>
+    </div>
 
-          <!-- Content split -->
-          <main class="grid grid-rows-2 h-full">
-            <section id="upper-pane" class="overflow-hidden p-3"></section>
-            <section id="lower-pane" class="overflow-auto p-3"></section>
-          </main>
-        </div>
-
-      <script type="module" src="/src/main.js"></script>
-    </body>
-
+    <!-- Load your app last so the DOM exists -->
+    <script type="module" src="/src/main.js"></script>
   </body>
 </html>
