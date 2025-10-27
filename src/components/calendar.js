@@ -182,13 +182,79 @@ function renderMonthGrid(elGrid, monthDate, events) {
   }
 }
 
+export function initGoogleAuth({ onReady, onNeedConsent, loginHint } = {}) {
+  const ready = () => !!window.google?.accounts?.oauth2;
+  const waitGIS = ready()
+    ? Promise.resolve()
+    : new Promise(res => {
+        const t = setInterval(() => { if (ready()) { clearInterval(t); res(); } }, 50);
+      });
+
+  waitGIS.then(() => {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+      scope: CAL_SCOPE,
+      include_granted_scopes: true,
+      ...(loginHint ? { hint: loginHint } : {}),
+      callback: (resp) => {
+        if (resp.error) {
+          cleanupToken();
+          onNeedConsent?.(resp);
+          return;
+        }
+        accessToken = resp.access_token;
+        const now = Date.now();
+        const expiresMs = (Number(resp.expires_in || 3600) - 300) * 1000; // refresh 5m early
+        scheduleSilentRefresh(expiresMs);
+        onReady?.(accessToken);
+      }
+    });
+    tokenClient.requestAccessToken({ prompt: '' });
+  });
+}
+
+// Show this on your “Connect Google” button
+export function requestInteractiveConsent() {
+  if (!tokenClient) return;
+  tokenClient.requestAccessToken({ prompt: 'consent' });
+}
+
+export function getAccessToken() {
+  return accessToken;
+}
+
+function scheduleSilentRefresh(delayMs) {
+  if (refreshTimer) clearTimeout(refreshTimer);
+  refreshTimer = setTimeout(() => {
+    // Silent refresh: no popup if Google cookie/session exists
+    tokenClient?.requestAccessToken({ prompt: '' });
+  }, Math.max(15_000, delayMs));
+}
+
+function cleanupToken() {
+  accessToken = null;
+  if (refreshTimer) clearTimeout(refreshTimer);
+  refreshTimer = null;
+}
+
 // ---- main mount ----
 export async function mountGoogleCalendar(targetEl) {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  const loginHint = import.meta.env.VITE_GOOGLE_LOGIN_EMAIL;
   if (!targetEl) { console.warn('mountGoogleCalendar: target element missing'); return; }
   if (!clientId) {
     targetEl.innerHTML = `<div class="text-rose-400">VITE_GOOGLE_CLIENT_ID is missing.</div>`;
     return;
+  }
+
+  let accessToken = null;
+  let refreshTimer = null;
+  function scheduleSilentRefresh(delayMs) {
+    if (refreshTimer) clearTimeout(refreshTimer);
+    refreshTimer = setTimeout(() => {
+      // Silent refresh: no prompt if user is still signed in and already granted scope
+      tokenClient?.requestAccessToken({ prompt: '' });
+    }, Math.max(15_000, delayMs)); // never schedule too close
   }
 
   renderShell(targetEl);
@@ -199,21 +265,28 @@ export async function mountGoogleCalendar(targetEl) {
 
   await loadScriptOnce(GIS_URL);
 
-  let accessToken = null;
   let currentMonth = startOfMonth(new Date());
-
-  const tokenClient = google.accounts.oauth2.initTokenClient({
+  let tokenClient = google.accounts.oauth2.initTokenClient({
     client_id: clientId,
     scope: SCOPE,
+    include_granted_scopes: true,
+    ...(loginHint ? { hint: loginHint } : {}), // <-- add this
     callback: (resp) => {
-      if (resp.error) { console.warn('GIS error', resp); return; }
+      if (resp) {
+        console.log('Google OAuth response');
+        connectBtn.classList.add('hidden'); // show button if silent attempt fails
+        refresh();
+      } else {
+        console.warn('Google OAuth error', resp);
+        // Show the "Connect Google" button for manual consent
+        connectBtn.classList.remove('hidden');
+      }
       accessToken = resp.access_token;
+      const expiresSec = Number(resp.expires_in || 3600);
+      scheduleSilentRefresh((expiresSec - 300) * 1000);
       refresh();
     }
   });
-
-  // First-time prompt
-  const connectOnce = () => tokenClient.requestAccessToken({ prompt: 'consent' });
 
   async function refresh() {
     if (!accessToken) return;
@@ -240,6 +313,22 @@ export async function mountGoogleCalendar(targetEl) {
   const connectBtn = document.createElement('button');
   connectBtn.className = 'ml-2 px-2 py-1 rounded border border-white/15 hover:border-sky-400/50';
   connectBtn.textContent = 'Connect Google';
-  connectBtn.addEventListener('click', connectOnce);
+  connectBtn.classList.add('hidden'); // <-- hidden until we know silent failed
   header?.appendChild(connectBtn);
+
+  // Try silent token on load (no popup if session + prior consent exist)
+  tokenClient.requestAccessToken({ prompt: '' });
+
+  // setTimeout(() => {
+  //   if (tokenClient.accessToken == null) {
+  //     console.warn('Google Token Client failed to initialize. Manual consent required.');
+  //     connectBtn.classList.remove('hidden');
+  //   }
+  // }, 5000);
+
+  
+  // Fallback: user clicks to do interactive consent if silent failed
+  connectBtn.addEventListener('click', () => {
+    tokenClient.requestAccessToken({ prompt: 'consent' });
+  });
 }
